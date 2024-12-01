@@ -4,6 +4,8 @@ use crate::ConRect;
 
 use super::AppData;
 
+const COLLISION_MARGIN: f32 = 2.;
+
 #[derive(Debug, Clone, Copy)]
 struct SearchNode {
     id: usize,
@@ -59,10 +61,10 @@ impl AppData {
                     continue;
                 }
                 for (j, pt) in self.grid.points.iter().enumerate() {
-                    if rect.x <= pt.pos.x
-                        && pt.pos.x < rect.x + rect.width
-                        && rect.y <= pt.pos.y
-                        && pt.pos.y < rect.y + rect.height
+                    if rect.x - COLLISION_MARGIN <= pt.pos.x
+                        && pt.pos.x < rect.x + rect.width + COLLISION_MARGIN
+                        && rect.y - COLLISION_MARGIN <= pt.pos.y
+                        && pt.pos.y < rect.y + rect.height + COLLISION_MARGIN
                     {
                         obstructed.insert(j);
                     }

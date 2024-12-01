@@ -15,36 +15,18 @@ pub(crate) struct Grid {
 }
 
 impl Grid {
-    pub(super) fn new(con_rects: &[ConRect]) -> Self {
+    pub(super) fn new(con_rects: &mut [ConRect]) -> Self {
         let mut intervals_x: Vec<_> = (0..10).map(|x| (x * 100) as f32).collect();
         let mut intervals_y: Vec<_> = (0..10).map(|x| (x * 100) as f32).collect();
 
         for rect in con_rects {
-            let x_center = rect.x + rect.width / 2.;
+            insert_interval(&mut intervals_x, rect.x);
+            insert_interval(&mut intervals_x, rect.x + rect.width / 2.);
+            insert_interval(&mut intervals_x, rect.x + rect.width);
 
-            // Stupid linear search, because binary_search won't work with f32
-            let res = intervals_x
-                .iter()
-                .enumerate()
-                .find(|(_, x)| x_center < **x)
-                .map(|(i, _)| i);
-            if let Some(res) = res {
-                if x_center != intervals_x[res] {
-                    intervals_x.insert(res, x_center);
-                }
-            }
-
-            let y_center = rect.y + rect.height / 2.;
-            let res = intervals_y
-                .iter()
-                .enumerate()
-                .find(|(_, x)| y_center < **x)
-                .map(|(i, _)| i);
-            if let Some(res) = res {
-                if y_center != intervals_y[res] {
-                    intervals_y.insert(res, y_center);
-                }
-            }
+            insert_interval(&mut intervals_y, rect.y);
+            insert_interval(&mut intervals_y, rect.y + rect.height / 2.);
+            insert_interval(&mut intervals_y, rect.y + rect.height);
         }
 
         let y_len = intervals_y.len();
@@ -83,6 +65,20 @@ impl Grid {
             intervals_x,
             intervals_y,
             points,
+        }
+    }
+}
+
+fn insert_interval(intervals: &mut Vec<f32>, pos: f32) {
+    // Stupid linear search, because binary_search won't work with f32
+    let res = intervals
+        .iter()
+        .enumerate()
+        .find(|(_, x)| pos < **x)
+        .map(|(i, _)| i);
+    if let Some(res) = res {
+        if pos != intervals[res] {
+            intervals.insert(res, pos);
         }
     }
 }

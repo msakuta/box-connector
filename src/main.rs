@@ -133,7 +133,7 @@ impl App {
             }
 
             if moved {
-                self.app_data.grid = Grid::new(&self.app_data.con_rects);
+                self.app_data.grid = Grid::new(&mut self.app_data.con_rects);
                 if self.auto_find_path {
                     self.app_data.search();
                 }
@@ -153,7 +153,7 @@ impl App {
                 .iter()
                 .map(|i| to_screen.transform_pos(self.app_data.grid.points[*i].pos))
                 .collect();
-            let line = Shape::line(path_pos, (1., Color32::RED));
+            let line = Shape::line(path_pos, (2., Color32::RED));
             painter.add(line);
         }
 
@@ -239,8 +239,8 @@ impl App {
 }
 
 impl AppData {
-    fn new(con_rects: Vec<ConRect>) -> Self {
-        let grid = Grid::new(&con_rects);
+    fn new(mut con_rects: Vec<ConRect>) -> Self {
+        let grid = Grid::new(&mut con_rects);
 
         Self {
             con_rects,
@@ -259,6 +259,10 @@ struct ConRect {
     y: f32,
     width: f32,
     height: f32,
+    left_con: Option<usize>,
+    right_con: Option<usize>,
+    top_con: Option<usize>,
+    bottom_con: Option<usize>,
 }
 
 impl ConRect {
@@ -268,6 +272,10 @@ impl ConRect {
             y,
             width,
             height,
+            left_con: None,
+            right_con: None,
+            top_con: None,
+            bottom_con: None,
         }
     }
 }
