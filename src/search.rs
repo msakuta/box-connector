@@ -1,6 +1,6 @@
 use std::collections::{BinaryHeap, HashMap, HashSet};
 
-use crate::{grid::find_rect_node, ConRect};
+use crate::grid::find_rect_node;
 
 use super::AppData;
 
@@ -41,14 +41,23 @@ impl AppData {
         if let &[ref first, ref second, ..] = &self.con_rects[..] {
             let mut visited = HashMap::new();
             let mut next_set = BinaryHeap::new();
-            let start_id = first
-                .left_con
-                .or_else(|| find_rect_node(&self.grid.points, first));
+            let mut start_ids = vec![];
+            if let Some(left_con) = first.left_con {
+                start_ids.push(left_con);
+            }
+            if let Some(right_con) = first.right_con {
+                start_ids.push(right_con);
+            }
+            if start_ids.is_empty() {
+                if let Some(id) = find_rect_node(&self.grid.points, first) {
+                    start_ids.push(id);
+                }
+            }
             let goal_id = second
                 .left_con
                 .or_else(|| find_rect_node(&self.grid.points, second));
-            self.start = start_id;
-            if let Some(start_id) = start_id {
+            self.start_nodes = start_ids.clone();
+            for start_id in start_ids {
                 next_set.push(SearchNode {
                     id: start_id,
                     cost: 0.,
@@ -60,10 +69,7 @@ impl AppData {
             self.goal = goal_id;
 
             let mut obstructed = HashSet::new();
-            for (i, rect) in self.con_rects.iter().enumerate() {
-                // if i == 0 || i == 1 {
-                //     continue;
-                // }
+            for rect in self.con_rects.iter() {
                 for (j, pt) in self.grid.points.iter().enumerate() {
                     if rect.x - COLLISION_MARGIN <= pt.pos.x
                         && pt.pos.x < rect.x + rect.width + COLLISION_MARGIN

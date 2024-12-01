@@ -42,7 +42,7 @@ pub struct App {
 struct AppData {
     con_rects: Vec<ConRect>,
     grid: Grid,
-    start: Option<usize>,
+    start_nodes: Vec<usize>,
     goal: Option<usize>,
     path: Option<Vec<usize>>,
     selected_rect: Option<usize>,
@@ -230,7 +230,7 @@ impl App {
                 ),
             };
 
-            let color = if Some(i) == self.app_data.start {
+            let color = if self.app_data.start_nodes.iter().any(|j| i == *j) {
                 Color32::RED
             } else if Some(i) == self.app_data.goal {
                 Color32::GREEN
@@ -261,7 +261,7 @@ impl AppData {
         Self {
             con_rects,
             grid,
-            start: None,
+            start_nodes: vec![],
             goal: None,
             path: None,
             selected_rect: None,

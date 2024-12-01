@@ -70,6 +70,11 @@ impl Grid {
         for rect in con_rects {
             let pos = pos2(rect.x - COLLISION_MARGIN * 2., rect.y + rect.height / 2.);
             rect.left_con = insert_horz_intersection(&mut points, pos);
+            let pos = pos2(
+                rect.x + rect.width + COLLISION_MARGIN * 2.,
+                rect.y + rect.height / 2.,
+            );
+            rect.right_con = insert_horz_intersection(&mut points, pos);
         }
 
         Self {
