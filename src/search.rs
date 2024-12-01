@@ -37,7 +37,7 @@ impl std::cmp::Ord for SearchNode {
 }
 
 impl AppData {
-    pub(super) fn search(&mut self) {
+    pub(super) fn search(&mut self) -> Result<(), String> {
         if let &[ref first, ref second, ..] = &self.con_rects[..] {
             let mut visited = HashMap::new();
             let mut next_set = BinaryHeap::new();
@@ -77,6 +77,8 @@ impl AppData {
 
             // println!("Obstructed: {obstructed:?}");
 
+            let mut iter = 0;
+
             while let Some(s_node) = next_set.pop() {
                 if Some(s_node.id) == self.goal {
                     let mut path = vec![s_node.id];
@@ -84,6 +86,10 @@ impl AppData {
                     while let Some(came_from) = prev {
                         path.push(came_from);
                         prev = visited.get(&came_from).and_then(|(_, prev)| *prev);
+                        iter += 1;
+                        if 1000 < iter {
+                            return Err("Path find iteration exceeds 1000".to_string());
+                        }
                     }
                     println!("Path found! {path:?}");
                     self.path = Some(path);
@@ -123,7 +129,12 @@ impl AppData {
                             (new_cost, Some(s_node.id))
                         });
                 }
+                iter += 1;
+                if 1000 < iter {
+                    return Err("Exceed 1000 iterations".to_string());
+                }
             }
         }
+        Ok(())
     }
 }

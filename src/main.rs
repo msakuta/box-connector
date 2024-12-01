@@ -3,7 +3,8 @@ mod search;
 
 use eframe::{
     egui::{
-        vec2, Align2, CentralPanel, FontId, Frame, Painter, Response, Sense, Shape, SidePanel, Ui,
+        vec2, Align2, CentralPanel, FontId, Frame, Painter, Response, RichText, Sense, Shape,
+        SidePanel, Ui,
     },
     emath::{self, RectTransform},
     epaint::{pos2, Color32, Pos2, Rect},
@@ -35,6 +36,7 @@ pub struct App {
     show_grid: bool,
     show_grid_label: bool,
     auto_find_path: bool,
+    error_msg: Option<String>,
 }
 
 struct AppData {
@@ -52,8 +54,15 @@ impl eframe::App for App {
             .resizable(false)
             .min_width(200.)
             .show(ctx, |ui| {
+                if let Some(ref e) = self.error_msg {
+                    ui.label(RichText::from(format!("Error: {e}")).color(Color32::RED));
+                } else {
+                    ui.label("No errors");
+                };
                 if ui.button("Find path").clicked() {
-                    self.app_data.search();
+                    if let Err(e) = self.app_data.search() {
+                        self.error_msg = Some(e);
+                    }
                 }
                 ui.checkbox(&mut self.auto_find_path, "Auto find path");
                 ui.checkbox(&mut self.show_grid, "Show grid");
@@ -76,6 +85,7 @@ impl App {
             show_grid: true,
             show_grid_label: true,
             auto_find_path: false,
+            error_msg: None,
         }
     }
 
@@ -135,7 +145,11 @@ impl App {
             if moved {
                 self.app_data.grid = Grid::new(&mut self.app_data.con_rects);
                 if self.auto_find_path {
-                    self.app_data.search();
+                    if let Err(e) = self.app_data.search() {
+                        self.error_msg = Some(e);
+                    } else {
+                        self.error_msg = None;
+                    }
                 }
             }
         }
@@ -151,7 +165,9 @@ impl App {
         if let Some(ref path) = self.app_data.path {
             let path_pos: Vec<_> = path
                 .iter()
-                .map(|i| to_screen.transform_pos(self.app_data.grid.points[*i].pos))
+                .filter_map(|i| {
+                    Some(to_screen.transform_pos(self.app_data.grid.points.get(*i)?.pos))
+                })
                 .collect();
             let line = Shape::line(path_pos, (2., Color32::RED));
             painter.add(line);
