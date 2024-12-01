@@ -41,21 +41,8 @@ impl AppData {
         if let &[ref first, ref second, ..] = &self.con_rects[..] {
             let mut visited = HashMap::new();
             let mut next_set = BinaryHeap::new();
-            let mut start_ids = vec![];
-            if let Some(left_con) = first.left_con {
-                start_ids.push(left_con);
-            }
-            if let Some(right_con) = first.right_con {
-                start_ids.push(right_con);
-            }
-            if start_ids.is_empty() {
-                if let Some(id) = find_rect_node(&self.grid.points, first) {
-                    start_ids.push(id);
-                }
-            }
-            let goal_id = second
-                .left_con
-                .or_else(|| find_rect_node(&self.grid.points, second));
+            let start_ids = first.connectors();
+            let goal_ids = second.connectors();
             self.start_nodes = start_ids.clone();
             for start_id in start_ids {
                 next_set.push(SearchNode {
@@ -66,7 +53,7 @@ impl AppData {
                 visited.insert(start_id, (0., None));
             }
 
-            self.goal = goal_id;
+            self.goal_nodes = goal_ids.clone();
 
             let mut obstructed = HashSet::new();
             for rect in self.con_rects.iter() {
@@ -86,7 +73,7 @@ impl AppData {
             let mut iter = 0;
 
             while let Some(s_node) = next_set.pop() {
-                if Some(s_node.id) == self.goal {
+                if self.goal_nodes.iter().any(|goal| *goal == s_node.id) {
                     let mut path = vec![s_node.id];
                     let mut prev = s_node.came_from;
                     while let Some(came_from) = prev {

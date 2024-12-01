@@ -75,6 +75,13 @@ impl Grid {
                 rect.y + rect.height / 2.,
             );
             rect.right_con = insert_horz_intersection(&mut points, pos);
+            let pos = pos2(rect.x + rect.width / 2., rect.y - COLLISION_MARGIN * 2.);
+            rect.top_con = insert_vert_intersection(&mut points, pos);
+            let pos = pos2(
+                rect.x + rect.width / 2.,
+                rect.y + rect.height + COLLISION_MARGIN * 2.,
+            );
+            rect.bottom_con = insert_vert_intersection(&mut points, pos);
         }
 
         Self {
@@ -155,6 +162,65 @@ fn find_horz_intersection(points: &[GridPoint], pos: Pos2) -> Option<(ConIdx, Co
 
 fn insert_horz_intersection(points: &mut Vec<GridPoint>, pos: Pos2) -> Option<usize> {
     if let Some((from, to)) = find_horz_intersection(points, pos) {
+        let inserted_node = GridPoint::new(pos2(pos.x, pos.y), vec![from.node_id, to.node_id]);
+        let inserted_id = points.len();
+        points.push(inserted_node);
+        points[from.node_id].connect[from.con_idx] = inserted_id;
+        points[to.node_id].connect[to.con_idx] = inserted_id;
+        Some(inserted_id)
+    } else {
+        None
+    }
+}
+
+fn find_intersection(
+    points: &[GridPoint],
+    pos: Pos2,
+    scan_axis: impl Fn(Pos2) -> f32,
+    fixed_axis: impl Fn(Pos2) -> f32,
+) -> Option<(ConIdx, ConIdx)> {
+    for (i, point) in points.iter().enumerate() {
+        if 1. < (fixed_axis(pos) - fixed_axis(point.pos)).abs() {
+            continue;
+        }
+        let pos_scan = scan_axis(pos);
+        let point_scan = scan_axis(point.pos);
+        for (j, con) in point.connect.iter().enumerate() {
+            let point2 = &points[*con];
+            if 1. < (fixed_axis(pos) - fixed_axis(point2.pos)).abs() {
+                continue;
+            }
+            let point2_scan = scan_axis(point2.pos);
+            let intersecting = if point2_scan < point_scan {
+                point2_scan < pos_scan && pos_scan < point_scan
+            } else {
+                point_scan < pos_scan && pos_scan < point2_scan
+            };
+
+            if intersecting {
+                return Some((
+                    ConIdx {
+                        node_id: i,
+                        con_idx: j,
+                    },
+                    ConIdx {
+                        node_id: *con,
+                        con_idx: point2
+                            .connect
+                            .iter()
+                            .enumerate()
+                            .find(|(_, v)| **v == i)
+                            .map(|(i, _)| i)?,
+                    },
+                ));
+            }
+        }
+    }
+    None
+}
+
+fn insert_vert_intersection(points: &mut Vec<GridPoint>, pos: Pos2) -> Option<usize> {
+    if let Some((from, to)) = find_intersection(points, pos, |pos| pos.y, |pos| pos.x) {
         let inserted_node = GridPoint::new(pos2(pos.x, pos.y), vec![from.node_id, to.node_id]);
         let inserted_id = points.len();
         points.push(inserted_node);

@@ -43,7 +43,7 @@ struct AppData {
     con_rects: Vec<ConRect>,
     grid: Grid,
     start_nodes: Vec<usize>,
-    goal: Option<usize>,
+    goal_nodes: Vec<usize>,
     path: Option<Vec<usize>>,
     selected_rect: Option<usize>,
 }
@@ -232,7 +232,7 @@ impl App {
 
             let color = if self.app_data.start_nodes.iter().any(|j| i == *j) {
                 Color32::RED
-            } else if Some(i) == self.app_data.goal {
+            } else if self.app_data.goal_nodes.iter().any(|j| *j == i) {
                 Color32::GREEN
             } else {
                 Color32::GRAY
@@ -262,7 +262,7 @@ impl AppData {
             con_rects,
             grid,
             start_nodes: vec![],
-            goal: None,
+            goal_nodes: vec![],
             path: None,
             selected_rect: None,
         }
@@ -293,5 +293,16 @@ impl ConRect {
             top_con: None,
             bottom_con: None,
         }
+    }
+
+    fn connectors(&self) -> Vec<usize> {
+        let mut ret = vec![];
+        if let Some(v) = self.left_con {
+            ret.push(v);
+        }
+        self.right_con.map(|v| ret.push(v));
+        self.top_con.map(|v| ret.push(v));
+        self.bottom_con.map(|v| ret.push(v));
+        ret
     }
 }
