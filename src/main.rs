@@ -1,7 +1,9 @@
 mod search;
 
 use eframe::{
-    egui::{vec2, CentralPanel, Frame, Painter, Response, Sense, Shape, SidePanel, Ui},
+    egui::{
+        vec2, Align2, CentralPanel, FontId, Frame, Painter, Response, Sense, Shape, SidePanel, Ui,
+    },
     emath,
     epaint::{pos2, Color32, Pos2, Rect},
 };
@@ -23,6 +25,7 @@ fn main() {
             Ok(Box::new(App {
                 // img: BgImage::new(),
                 app_data,
+                show_grid_label: true,
             }))
         }),
     )
@@ -32,6 +35,7 @@ fn main() {
 pub struct App {
     // img: BgImage,
     app_data: AppData,
+    show_grid_label: bool,
 }
 
 struct AppData {
@@ -54,6 +58,7 @@ impl eframe::App for App {
                 if ui.button("Find path").clicked() {
                     self.app_data.search();
                 }
+                ui.checkbox(&mut self.show_grid_label, "Show grid labels");
             });
 
         CentralPanel::default().show(ctx, |ui| {
@@ -176,6 +181,17 @@ impl App {
             };
 
             painter.rect_stroke(to_screen.transform_rect(rect), 0., (1., color));
+
+            if self.show_grid_label {
+                let font = FontId::monospace(10.);
+                painter.text(
+                    to_screen.transform_pos(grid_point.pos),
+                    Align2::CENTER_BOTTOM,
+                    format!("{i}"),
+                    font,
+                    Color32::BLACK,
+                );
+            }
         }
 
         if let Some(ref path) = self.app_data.path {

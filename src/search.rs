@@ -1,4 +1,4 @@
-use std::collections::{BinaryHeap, HashMap};
+use std::collections::{BinaryHeap, HashMap, HashSet};
 
 use crate::ConRect;
 
@@ -54,6 +54,24 @@ impl AppData {
 
             self.goal = goal_id;
 
+            let mut obstructed = HashSet::new();
+            for (i, rect) in self.con_rects.iter().enumerate() {
+                if i == 0 || i == 1 {
+                    continue;
+                }
+                for (j, pt) in self.grid_points.iter().enumerate() {
+                    if rect.x <= pt.pos.x
+                        && pt.pos.x < rect.x + rect.width
+                        && rect.y <= pt.pos.y
+                        && pt.pos.y < rect.y + rect.height
+                    {
+                        obstructed.insert(j);
+                    }
+                }
+            }
+
+            println!("Obstructed: {obstructed:?}");
+
             while let Some(s_node) = next_set.pop() {
                 if Some(s_node.id) == self.goal {
                     let mut path = vec![s_node.id];
@@ -68,6 +86,9 @@ impl AppData {
                 }
                 let node = &self.grid_points[s_node.id];
                 for con in &node.connect {
+                    if obstructed.contains(con) {
+                        continue;
+                    }
                     let new_cost = s_node.cost + 1.;
                     visited
                         .entry(*con)
@@ -80,7 +101,7 @@ impl AppData {
                                     cost: new_cost,
                                     came_from: Some(s_node.id),
                                 };
-                                println!("Adding {new_node:?}");
+                                // println!("Adding {new_node:?}");
                                 next_set.push(new_node);
                             }
                         })
@@ -90,7 +111,7 @@ impl AppData {
                                 cost: new_cost,
                                 came_from: Some(s_node.id),
                             };
-                            println!("Adding {new_node:?}");
+                            // println!("Adding {new_node:?}");
                             next_set.push(new_node);
                             (new_cost, Some(s_node.id))
                         });
