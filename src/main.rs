@@ -51,7 +51,7 @@ impl eframe::App for App {
             .min_width(200.)
             .show(ctx, |ui| {
                 if ui.button("Find path").clicked() {
-                    println!("Bah");
+                    self.app_data.search();
                 }
             });
 
@@ -66,18 +66,6 @@ impl eframe::App for App {
 
 impl App {
     fn draw(&mut self, ui: &mut Ui, response: &Response, painter: &Painter) {
-        struct UiResult {
-            clicked: bool,
-        }
-
-        let ui_result = ui.input(|input| UiResult {
-            clicked: input.pointer.primary_released(),
-        });
-
-        if ui_result.clicked {
-            self.app_data.search();
-        }
-
         let to_screen = emath::RectTransform::from_to(
             Rect::from_min_size(Pos2::ZERO, response.rect.size()),
             response.rect,
