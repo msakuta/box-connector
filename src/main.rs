@@ -254,7 +254,9 @@ fn gen_grid(con_rects: &[ConRect]) -> (Vec<f32>, Vec<f32>, Vec<GridPoint>) {
 
     for rect in con_rects {
         let x_center = rect.x + rect.width / 2.;
-        let res = grid_intervals_y
+
+        // Stupid linear search, because binary_search won't work with f32
+        let res = grid_intervals_x
             .iter()
             .enumerate()
             .find(|(_, x)| x_center < **x)
