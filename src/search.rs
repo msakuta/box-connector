@@ -83,12 +83,14 @@ impl AppData {
                     self.path = Some(path);
                     break;
                 }
+                let this_node = self.grid.points[s_node.id].pos;
                 let node = &self.grid.points[s_node.id];
                 for con in &node.connect {
                     if obstructed.contains(con) {
                         continue;
                     }
-                    let new_cost = s_node.cost + 1.;
+                    let new_node = self.grid.points[*con].pos;
+                    let new_cost = s_node.cost + this_node.distance(new_node);
                     visited
                         .entry(*con)
                         .and_modify(|e| {
