@@ -1,7 +1,5 @@
 use std::collections::{BinaryHeap, HashMap, HashSet};
 
-use crate::grid::find_rect_node;
-
 use super::AppData;
 
 pub(crate) const COLLISION_MARGIN: f32 = 2.;

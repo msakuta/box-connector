@@ -1,3 +1,4 @@
+mod con_rect;
 mod grid;
 mod search;
 
@@ -10,7 +11,7 @@ use eframe::{
     epaint::{pos2, Color32, Pos2, Rect},
 };
 
-use crate::grid::Grid;
+use crate::{con_rect::ConRect, grid::Grid};
 
 fn main() {
     let con_rects = vec![
@@ -266,43 +267,5 @@ impl AppData {
             path: None,
             selected_rect: None,
         }
-    }
-}
-
-/// Connectable rectangle
-struct ConRect {
-    x: f32,
-    y: f32,
-    width: f32,
-    height: f32,
-    left_con: Option<usize>,
-    right_con: Option<usize>,
-    top_con: Option<usize>,
-    bottom_con: Option<usize>,
-}
-
-impl ConRect {
-    fn new(x: f32, y: f32, width: f32, height: f32) -> ConRect {
-        Self {
-            x,
-            y,
-            width,
-            height,
-            left_con: None,
-            right_con: None,
-            top_con: None,
-            bottom_con: None,
-        }
-    }
-
-    fn connectors(&self) -> Vec<usize> {
-        let mut ret = vec![];
-        if let Some(v) = self.left_con {
-            ret.push(v);
-        }
-        self.right_con.map(|v| ret.push(v));
-        self.top_con.map(|v| ret.push(v));
-        self.bottom_con.map(|v| ret.push(v));
-        ret
     }
 }

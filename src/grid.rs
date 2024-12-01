@@ -92,17 +92,6 @@ impl Grid {
     }
 }
 
-pub(crate) fn find_rect_node(points: &[GridPoint], con_rect: &ConRect) -> Option<usize> {
-    points
-        .iter()
-        .enumerate()
-        .find(|(_, p)| {
-            (con_rect.x + con_rect.width / 2. - p.pos.x).abs() < 0.5
-                && (con_rect.y + con_rect.height / 2. - p.pos.y).abs() < 0.5
-        })
-        .map(|(i, _)| i)
-}
-
 fn insert_interval(intervals: &mut Vec<f32>, pos: f32) {
     // Stupid linear search, because binary_search won't work with f32
     let res = intervals
