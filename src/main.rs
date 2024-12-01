@@ -1,42 +1,19 @@
 mod search;
 
 use eframe::{
-    egui::{CentralPanel, Frame, Painter, Response, Sense, Shape, Ui},
+    egui::{CentralPanel, Frame, Painter, Response, Sense, Shape, SidePanel, Ui},
     emath,
     epaint::{pos2, Color32, Pos2, Rect},
 };
 
 fn main() {
-    // let mut poly = Polygon {
-    //     vertices: vec![[30., 5.], [10., 20.], [15., 30.], [30., 23.], [50., 30.]],
-    // };
-
     let con_rects = vec![
-        ConRect::new(130., 70., 210., 50.),
-        ConRect::new(520., 120., 130., 30.),
-        ConRect::new(360., 420., 250., 60.),
+        ConRect::new(130., 70., 140., 50.),
+        ConRect::new(420., 120., 90., 30.),
+        ConRect::new(260., 420., 150., 60.),
     ];
 
-    const IMG_SIZE: usize = 512;
-
-    // scale(&mut poly, IMG_SIZE as f64 / 64.);
-
-    // let shape = (IMG_SIZE, IMG_SIZE);
-    // let mut board = vec![false; shape.0 * shape.1];
-
-    // let (_, time) = measure_time(|| fill_polygon(&mut board, shape, &poly, false));
-    // println!("Fill triangle time: {}ms", time * 1e3);
-
     let app_data = AppData::new(con_rects);
-    //  {
-    //     board,
-    //     shape,
-    //     poly,
-    //     mouse_pos: None,
-    //     selected_vertex: None,
-    //     naive: false,
-    //     fill_time: 0.,
-    // };
 
     let native_options = eframe::NativeOptions::default();
     eframe::run_native(
@@ -69,17 +46,14 @@ struct AppData {
 
 impl eframe::App for App {
     fn update(&mut self, ctx: &eframe::egui::Context, _frame: &mut eframe::Frame) {
-        // SidePanel::right("side_panel")
-        //     .resizable(false)
-        //     .min_width(200.)
-        //     .show(ctx, |ui| {
-        //         ui.label(format!("mouse: {:?}", self.app_data.mouse_pos));
-        //         ui.label(format!("vertex: {:?}", self.app_data.selected_vertex));
-        //         if ui.checkbox(&mut self.app_data.naive, "Naive").changed() {
-        //             self.img.clear();
-        //         };
-        //         ui.label(format!("Fill time: {:.06}ms", self.app_data.fill_time));
-        //     });
+        SidePanel::right("side_panel")
+            .resizable(false)
+            .min_width(200.)
+            .show(ctx, |ui| {
+                if ui.button("Find path").clicked() {
+                    println!("Bah");
+                }
+            });
 
         CentralPanel::default().show(ctx, |ui| {
             Frame::canvas(ui.style()).show(ui, |ui| {
