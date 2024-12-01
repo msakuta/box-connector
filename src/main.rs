@@ -25,6 +25,7 @@ fn main() {
             Ok(Box::new(App {
                 // img: BgImage::new(),
                 app_data,
+                auto_find_path: false,
                 show_grid_label: true,
             }))
         }),
@@ -36,6 +37,7 @@ pub struct App {
     // img: BgImage,
     app_data: AppData,
     show_grid_label: bool,
+    auto_find_path: bool,
 }
 
 struct AppData {
@@ -58,6 +60,7 @@ impl eframe::App for App {
                 if ui.button("Find path").clicked() {
                     self.app_data.search();
                 }
+                ui.checkbox(&mut self.auto_find_path, "Auto find path");
                 ui.checkbox(&mut self.show_grid_label, "Show grid labels");
             });
 
@@ -129,6 +132,9 @@ impl App {
                 self.app_data.grid_intervals_x = grid_x;
                 self.app_data.grid_intervals_y = grid_y;
                 self.app_data.grid_points = grid_points;
+                if self.auto_find_path {
+                    self.app_data.search();
+                }
             }
         }
 

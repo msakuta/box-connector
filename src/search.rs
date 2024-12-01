@@ -42,7 +42,6 @@ impl AppData {
             let start_id = self.find_rect_node(first);
             let goal_id = self.find_rect_node(second);
             self.start = start_id;
-            println!("Set start_id: {start_id:?}");
             if let Some(start_id) = start_id {
                 next_set.push(SearchNode {
                     id: start_id,
@@ -70,7 +69,7 @@ impl AppData {
                 }
             }
 
-            println!("Obstructed: {obstructed:?}");
+            // println!("Obstructed: {obstructed:?}");
 
             while let Some(s_node) = next_set.pop() {
                 if Some(s_node.id) == self.goal {
@@ -117,7 +116,6 @@ impl AppData {
                         });
                 }
             }
-            println!("Visited {}", visited.len());
         }
     }
 
