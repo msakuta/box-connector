@@ -58,7 +58,7 @@ impl AppData {
                 if i == 0 || i == 1 {
                     continue;
                 }
-                for (j, pt) in self.grid_points.iter().enumerate() {
+                for (j, pt) in self.grid.points.iter().enumerate() {
                     if rect.x <= pt.pos.x
                         && pt.pos.x < rect.x + rect.width
                         && rect.y <= pt.pos.y
@@ -83,7 +83,7 @@ impl AppData {
                     self.path = Some(path);
                     break;
                 }
-                let node = &self.grid_points[s_node.id];
+                let node = &self.grid.points[s_node.id];
                 for con in &node.connect {
                     if obstructed.contains(con) {
                         continue;
@@ -120,7 +120,8 @@ impl AppData {
     }
 
     fn find_rect_node(&self, con_rect: &ConRect) -> Option<usize> {
-        self.grid_points
+        self.grid
+            .points
             .iter()
             .enumerate()
             .find(|(_, p)| {

@@ -9,7 +9,7 @@ use eframe::{
     epaint::{pos2, Color32, Pos2, Rect},
 };
 
-use crate::grid::{gen_grid, GridPoint};
+use crate::grid::Grid;
 
 fn main() {
     let con_rects = vec![
@@ -45,9 +45,7 @@ pub struct App {
 
 struct AppData {
     con_rects: Vec<ConRect>,
-    grid_intervals_x: Vec<f32>,
-    grid_intervals_y: Vec<f32>,
-    grid_points: Vec<GridPoint>,
+    grid: Grid,
     start: Option<usize>,
     goal: Option<usize>,
     path: Option<Vec<usize>>,
@@ -131,10 +129,7 @@ impl App {
             }
 
             if moved {
-                let (grid_x, grid_y, grid_points) = gen_grid(&self.app_data.con_rects);
-                self.app_data.grid_intervals_x = grid_x;
-                self.app_data.grid_intervals_y = grid_y;
-                self.app_data.grid_points = grid_points;
+                self.app_data.grid = Grid::new(&self.app_data.con_rects);
                 if self.auto_find_path {
                     self.app_data.search();
                 }
@@ -145,7 +140,7 @@ impl App {
             self.app_data.selected_rect = None;
         }
 
-        for grid_line in &self.app_data.grid_intervals_x {
+        for grid_line in &self.app_data.grid.intervals_x {
             let line = Shape::line_segment(
                 [
                     to_screen.transform_pos(pos2(*grid_line, response.rect.top())),
@@ -156,7 +151,7 @@ impl App {
             painter.add(line);
         }
 
-        for grid_line in &self.app_data.grid_intervals_y {
+        for grid_line in &self.app_data.grid.intervals_y {
             let line = Shape::line_segment(
                 [
                     to_screen.transform_pos(pos2(response.rect.left(), *grid_line)),
@@ -169,7 +164,7 @@ impl App {
 
         const MARKER_SIZE: f32 = 4.;
 
-        for (i, grid_point) in self.app_data.grid_points.iter().enumerate() {
+        for (i, grid_point) in self.app_data.grid.points.iter().enumerate() {
             let rect = Rect {
                 min: Pos2::new(
                     grid_point.pos.x as f32 - MARKER_SIZE,
@@ -206,7 +201,7 @@ impl App {
         if let Some(ref path) = self.app_data.path {
             let path_pos: Vec<_> = path
                 .iter()
-                .map(|i| to_screen.transform_pos(self.app_data.grid_points[*i].pos))
+                .map(|i| to_screen.transform_pos(self.app_data.grid.points[*i].pos))
                 .collect();
             let line = Shape::line(path_pos, (1., Color32::RED));
             painter.add(line);
@@ -235,14 +230,11 @@ impl App {
 
 impl AppData {
     fn new(con_rects: Vec<ConRect>) -> Self {
-        let (grid_intervals_x, grid_intervals_y, grid_points) = gen_grid(&con_rects);
-        // dbg!(&grid_points);
+        let grid = Grid::new(&con_rects);
 
         Self {
             con_rects,
-            grid_intervals_x,
-            grid_intervals_y,
-            grid_points,
+            grid,
             start: None,
             goal: None,
             path: None,
