@@ -5,7 +5,7 @@ use eframe::{
     egui::{
         vec2, Align2, CentralPanel, FontId, Frame, Painter, Response, Sense, Shape, SidePanel, Ui,
     },
-    emath,
+    emath::{self, RectTransform},
     epaint::{pos2, Color32, Pos2, Rect},
 };
 
@@ -24,14 +24,7 @@ fn main() {
     eframe::run_native(
         "box-connector application in eframe",
         native_options,
-        Box::new(move |_cc| {
-            Ok(Box::new(App {
-                // img: BgImage::new(),
-                app_data,
-                auto_find_path: false,
-                show_grid_label: true,
-            }))
-        }),
+        Box::new(move |_cc| Ok(Box::new(App::new(app_data)))),
     )
     .unwrap();
 }
@@ -39,6 +32,7 @@ fn main() {
 pub struct App {
     // img: BgImage,
     app_data: AppData,
+    show_grid: bool,
     show_grid_label: bool,
     auto_find_path: bool,
 }
@@ -62,6 +56,7 @@ impl eframe::App for App {
                     self.app_data.search();
                 }
                 ui.checkbox(&mut self.auto_find_path, "Auto find path");
+                ui.checkbox(&mut self.show_grid, "Show grid");
                 ui.checkbox(&mut self.show_grid_label, "Show grid labels");
             });
 
@@ -75,6 +70,15 @@ impl eframe::App for App {
 }
 
 impl App {
+    fn new(app_data: AppData) -> Self {
+        Self {
+            app_data,
+            show_grid: true,
+            show_grid_label: true,
+            auto_find_path: false,
+        }
+    }
+
     fn draw(&mut self, ui: &mut Ui, response: &Response, painter: &Painter) {
         struct UiResult {
             interact_pos: Option<Pos2>,
@@ -140,6 +144,40 @@ impl App {
             self.app_data.selected_rect = None;
         }
 
+        if self.show_grid {
+            self.draw_grid(response, painter, &to_screen);
+        }
+
+        if let Some(ref path) = self.app_data.path {
+            let path_pos: Vec<_> = path
+                .iter()
+                .map(|i| to_screen.transform_pos(self.app_data.grid.points[*i].pos))
+                .collect();
+            let line = Shape::line(path_pos, (1., Color32::RED));
+            painter.add(line);
+        }
+
+        for (i, con_rect) in self.app_data.con_rects.iter().enumerate() {
+            let rect = Rect {
+                min: Pos2::new(con_rect.x, con_rect.y),
+                max: Pos2::new(con_rect.x + con_rect.width, con_rect.y + con_rect.height),
+            };
+
+            let hover = false;
+
+            let color = if self.app_data.selected_rect == Some(i) {
+                Color32::RED
+            } else if hover {
+                Color32::GREEN
+            } else {
+                Color32::BLUE
+            };
+
+            painter.rect_stroke(to_screen.transform_rect(rect), 0., (1., color));
+        }
+    }
+
+    fn draw_grid(&mut self, response: &Response, painter: &Painter, to_screen: &RectTransform) {
         for grid_line in &self.app_data.grid.intervals_x {
             let line = Shape::line_segment(
                 [
@@ -196,34 +234,6 @@ impl App {
                     Color32::BLACK,
                 );
             }
-        }
-
-        if let Some(ref path) = self.app_data.path {
-            let path_pos: Vec<_> = path
-                .iter()
-                .map(|i| to_screen.transform_pos(self.app_data.grid.points[*i].pos))
-                .collect();
-            let line = Shape::line(path_pos, (1., Color32::RED));
-            painter.add(line);
-        }
-
-        for (i, con_rect) in self.app_data.con_rects.iter().enumerate() {
-            let rect = Rect {
-                min: Pos2::new(con_rect.x, con_rect.y),
-                max: Pos2::new(con_rect.x + con_rect.width, con_rect.y + con_rect.height),
-            };
-
-            let hover = false;
-
-            let color = if self.app_data.selected_rect == Some(i) {
-                Color32::RED
-            } else if hover {
-                Color32::GREEN
-            } else {
-                Color32::BLUE
-            };
-
-            painter.rect_stroke(to_screen.transform_rect(rect), 0., (1., color));
         }
     }
 }
