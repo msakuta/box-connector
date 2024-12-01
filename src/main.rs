@@ -79,6 +79,13 @@ impl eframe::App for App {
     }
 }
 
+struct UiResult {
+    interact_pos: Option<Pos2>,
+    hover_pos: Option<Pos2>,
+    mouse_down: bool,
+    mouse_up: bool,
+}
+
 impl App {
     fn new(app_data: AppData) -> Self {
         Self {
@@ -91,16 +98,11 @@ impl App {
     }
 
     fn draw(&mut self, ui: &mut Ui, response: &Response, painter: &Painter) {
-        struct UiResult {
-            interact_pos: Option<Pos2>,
-            mouse_down: bool,
-            mouse_up: bool,
-        }
-
         let ui_result = ui.input(|input| {
             let interact_pos = input.pointer.interact_pos();
             UiResult {
                 interact_pos,
+                hover_pos: input.pointer.hover_pos(),
                 mouse_up: input.pointer.primary_released(),
                 mouse_down: input.pointer.primary_pressed(),
             }
@@ -160,7 +162,7 @@ impl App {
         }
 
         if self.show_grid {
-            self.draw_grid(response, painter, &to_screen);
+            self.draw_grid(&ui_result, response, painter, &to_screen);
         }
 
         if let Some(ref path) = self.app_data.path {
@@ -190,11 +192,17 @@ impl App {
                 Color32::BLUE
             };
 
-            painter.rect_stroke(to_screen.transform_rect(rect), 0., (1., color));
+            painter.rect_stroke(to_screen.transform_rect(rect), 0., (2., color));
         }
     }
 
-    fn draw_grid(&mut self, response: &Response, painter: &Painter, to_screen: &RectTransform) {
+    fn draw_grid(
+        &mut self,
+        ui_result: &UiResult,
+        response: &Response,
+        painter: &Painter,
+        to_screen: &RectTransform,
+    ) {
         for grid_line in &self.app_data.grid.intervals_x {
             let line = Shape::line_segment(
                 [
@@ -231,7 +239,28 @@ impl App {
                 ),
             };
 
-            let color = if self.app_data.start_nodes.iter().any(|j| i == *j) {
+            let hover = ui_result.hover_pos.is_some_and(|hov| {
+                to_screen.transform_pos(grid_point.pos).distance_sq(hov) < MARKER_SIZE.powi(2)
+            });
+
+            if hover {
+                for j in &grid_point.connect {
+                    if let Some(grid_point_j) = self.app_data.grid.points.get(*j) {
+                        let line = Shape::line_segment(
+                            [
+                                to_screen.transform_pos(grid_point_j.pos),
+                                to_screen.transform_pos(grid_point.pos),
+                            ],
+                            (2., Color32::from_rgb(191, 0, 191)),
+                        );
+                        painter.add(line);
+                    }
+                }
+            }
+
+            let color = if hover {
+                Color32::BLUE
+            } else if self.app_data.start_nodes.iter().any(|j| i == *j) {
                 Color32::RED
             } else if self.app_data.goal_nodes.iter().any(|j| *j == i) {
                 Color32::GREEN
@@ -239,7 +268,11 @@ impl App {
                 Color32::GRAY
             };
 
-            painter.rect_stroke(to_screen.transform_rect(rect), 0., (1., color));
+            painter.rect_stroke(
+                to_screen.transform_rect(rect),
+                0.,
+                (if hover { 2. } else { 1. }, color),
+            );
 
             if self.show_grid_label {
                 let font = FontId::monospace(10.);
