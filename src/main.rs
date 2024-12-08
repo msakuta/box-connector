@@ -10,6 +10,7 @@ use eframe::{
     emath::{self, RectTransform},
     epaint::{pos2, Color32, Pos2, Rect},
 };
+use search::VisitedMap;
 
 use crate::{con_rect::ConRect, grid::Grid};
 
@@ -36,6 +37,7 @@ pub struct App {
     app_data: AppData,
     show_grid: bool,
     show_grid_label: bool,
+    show_grid_cost: bool,
     auto_find_path: bool,
     error_msg: Option<String>,
 }
@@ -47,6 +49,7 @@ struct AppData {
     goal_nodes: Vec<usize>,
     path: Option<Vec<usize>>,
     selected_rect: Option<usize>,
+    visited_nodes: Option<VisitedMap>,
 }
 
 impl eframe::App for App {
@@ -68,6 +71,7 @@ impl eframe::App for App {
                 ui.checkbox(&mut self.auto_find_path, "Auto find path");
                 ui.checkbox(&mut self.show_grid, "Show grid");
                 ui.checkbox(&mut self.show_grid_label, "Show grid labels");
+                ui.checkbox(&mut self.show_grid_cost, "Show grid cost");
             });
 
         CentralPanel::default().show(ctx, |ui| {
@@ -92,6 +96,7 @@ impl App {
             app_data,
             show_grid: true,
             show_grid_label: true,
+            show_grid_cost: false,
             auto_find_path: false,
             error_msg: None,
         }
@@ -293,6 +298,29 @@ impl App {
                 );
             }
         }
+
+        for (i, node) in self.app_data.visited_nodes.iter().flatten() {
+            let to = to_screen.transform_pos(self.app_data.grid.points[*i].pos);
+            if let Some(came_from) = node.came_from {
+                let from = to_screen.transform_pos(self.app_data.grid.points[came_from].pos);
+                let mid = (to + from.to_vec2()) / 2.;
+                let line = Shape::line_segment([from, mid], (2., Color32::from_rgb(0, 127, 191)));
+                painter.add(line);
+                let line = Shape::line_segment([mid, to], (3., Color32::from_rgb(0, 127, 191)));
+                painter.add(line);
+            }
+
+            if self.show_grid_cost {
+                let font = FontId::monospace(10.);
+                painter.text(
+                    to_screen.transform_pos(to),
+                    Align2::CENTER_TOP,
+                    format!("{}", node.cost),
+                    font,
+                    Color32::RED,
+                );
+            }
+        }
     }
 }
 
@@ -307,6 +335,7 @@ impl AppData {
             goal_nodes: vec![],
             path: None,
             selected_rect: None,
+            visited_nodes: None,
         }
     }
 }

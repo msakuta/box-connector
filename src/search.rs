@@ -34,10 +34,23 @@ impl std::cmp::Ord for SearchNode {
     }
 }
 
+pub struct VisitedNode {
+    pub cost: f32,
+    pub came_from: Option<usize>,
+}
+
+impl VisitedNode {
+    pub fn new(cost: f32, came_from: Option<usize>) -> Self {
+        Self { cost, came_from }
+    }
+}
+
+pub type VisitedMap = HashMap<usize, VisitedNode>;
+
 impl AppData {
     pub(super) fn search(&mut self) -> Result<(), String> {
         if let &[ref first, ref second, ..] = &self.con_rects[..] {
-            let mut visited = HashMap::new();
+            let mut visited = VisitedMap::new();
             let mut next_set = BinaryHeap::new();
             let start_ids = first.connectors();
             let goal_ids = second.connectors();
@@ -48,7 +61,7 @@ impl AppData {
                     cost: 0.,
                     came_from: None,
                 });
-                visited.insert(start_id, (0., None));
+                visited.insert(start_id, VisitedNode::new(0., None));
             }
 
             self.goal_nodes = goal_ids.clone();
@@ -76,15 +89,17 @@ impl AppData {
                     let mut prev = s_node.came_from;
                     while let Some(came_from) = prev {
                         path.push(came_from);
-                        prev = visited.get(&came_from).and_then(|(_, prev)| *prev);
+                        prev = visited.get(&came_from).and_then(|node| node.came_from);
                         iter += 1;
                         if 1000 < iter {
+                            self.visited_nodes = Some(visited);
                             return Err("Path find iteration exceeds 1000".to_string());
                         }
                     }
                     println!("Path found! {path:?}");
+                    self.visited_nodes = Some(visited);
                     self.path = Some(path);
-                    break;
+                    return Ok(());
                 }
                 let this_node = self.grid.points[s_node.id].pos;
                 let node = &self.grid.points[s_node.id];
@@ -98,9 +113,9 @@ impl AppData {
                     visited
                         .entry(*con)
                         .and_modify(|e| {
-                            if s_node.cost < e.0 {
-                                e.0 = new_cost;
-                                e.1 = Some(s_node.id);
+                            if s_node.cost < e.cost {
+                                e.cost = new_cost;
+                                e.came_from = Some(s_node.id);
                                 let new_node = SearchNode {
                                     id: *con,
                                     cost: new_cost,
@@ -118,15 +133,17 @@ impl AppData {
                             };
                             // println!("Adding {new_node:?}");
                             next_set.push(new_node);
-                            (new_cost, Some(s_node.id))
+                            VisitedNode::new(new_cost, Some(s_node.id))
                         });
                 }
                 iter += 1;
                 if 1000 < iter {
+                    self.visited_nodes = Some(visited);
                     return Err("Exceed 1000 iterations".to_string());
                 }
             }
         }
+        self.visited_nodes = None;
         Ok(())
     }
 }
