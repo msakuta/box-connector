@@ -1,3 +1,5 @@
+use std::cell::Cell;
+
 use eframe::egui::{pos2, Pos2};
 
 use crate::{search::COLLISION_MARGIN, ConRect};
@@ -6,11 +8,16 @@ use crate::{search::COLLISION_MARGIN, ConRect};
 pub(crate) struct GridPoint {
     pub pos: Pos2,
     pub connect: Vec<usize>,
+    pub visited: Cell<bool>,
 }
 
 impl GridPoint {
     pub fn new(pos: Pos2, connect: Vec<usize>) -> Self {
-        Self { pos, connect }
+        Self {
+            pos,
+            connect,
+            visited: Cell::new(false),
+        }
     }
 }
 
@@ -58,10 +65,7 @@ impl Grid {
                     if iy < y_len - 1 {
                         connect.push(ix + (iy + 1) * y_len);
                     }
-                    GridPoint {
-                        pos: pos2(*x, y),
-                        connect,
-                    }
+                    GridPoint::new(pos2(*x, y), connect)
                 })
             })
             .flatten()

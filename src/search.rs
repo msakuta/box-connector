@@ -94,6 +94,7 @@ impl AppData {
                     }
                     let new_node = self.grid.points[*con].pos;
                     let new_cost = s_node.cost + this_node.distance(new_node);
+                    self.grid.points[*con].visited.set(true);
                     visited
                         .entry(*con)
                         .and_modify(|e| {

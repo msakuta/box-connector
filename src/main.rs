@@ -209,7 +209,7 @@ impl App {
                     to_screen.transform_pos(pos2(*grid_line, response.rect.top())),
                     to_screen.transform_pos(pos2(*grid_line, response.rect.bottom())),
                 ],
-                (1., Color32::GRAY),
+                (1., Color32::LIGHT_GRAY),
             );
             painter.add(line);
         }
@@ -220,7 +220,7 @@ impl App {
                     to_screen.transform_pos(pos2(response.rect.left(), *grid_line)),
                     to_screen.transform_pos(pos2(response.rect.right(), *grid_line)),
                 ],
-                (1., Color32::GRAY),
+                (1., Color32::LIGHT_GRAY),
             );
             painter.add(line);
         }
@@ -258,14 +258,18 @@ impl App {
                 }
             }
 
+            let visited = grid_point.visited.get();
+
             let color = if hover {
                 Color32::BLUE
+            } else if visited {
+                Color32::DARK_GREEN
             } else if self.app_data.start_nodes.iter().any(|j| i == *j) {
                 Color32::RED
             } else if self.app_data.goal_nodes.iter().any(|j| *j == i) {
                 Color32::GREEN
             } else {
-                Color32::GRAY
+                Color32::LIGHT_GRAY
             };
 
             painter.rect_stroke(
@@ -281,7 +285,11 @@ impl App {
                     Align2::CENTER_BOTTOM,
                     format!("{i}"),
                     font,
-                    Color32::BLACK,
+                    if visited {
+                        Color32::BLUE
+                    } else {
+                        Color32::BLACK
+                    },
                 );
             }
         }
