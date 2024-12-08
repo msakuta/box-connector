@@ -18,3 +18,8 @@ Run by
 
 https://github.com/user-attachments/assets/b50eac1f-d013-49b4-81a8-81e44126363b
 
+## References
+
+This repository implmenetation is based on the idea on this page, but allows avoidance of other nodes.
+
+https://medium.com/swlh/routing-orthogonal-diagram-connectors-in-javascript-191dc2c5ff70
