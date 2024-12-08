@@ -113,7 +113,7 @@ impl AppData {
                     visited
                         .entry(*con)
                         .and_modify(|e| {
-                            if s_node.cost < e.cost {
+                            if new_cost < e.cost {
                                 e.cost = new_cost;
                                 e.came_from = Some(s_node.id);
                                 let new_node = SearchNode {
