@@ -38,6 +38,7 @@ pub struct App {
     show_grid: bool,
     show_grid_label: bool,
     show_grid_cost: bool,
+    show_search_graph: bool,
     auto_find_path: bool,
     error_msg: Option<String>,
 }
@@ -72,6 +73,7 @@ impl eframe::App for App {
                 ui.checkbox(&mut self.show_grid, "Show grid");
                 ui.checkbox(&mut self.show_grid_label, "Show grid labels");
                 ui.checkbox(&mut self.show_grid_cost, "Show grid cost");
+                ui.checkbox(&mut self.show_search_graph, "Show search graph");
             });
 
         CentralPanel::default().show(ctx, |ui| {
@@ -97,6 +99,7 @@ impl App {
             show_grid: true,
             show_grid_label: true,
             show_grid_cost: false,
+            show_search_graph: false,
             auto_find_path: false,
             error_msg: None,
         }
@@ -301,13 +304,16 @@ impl App {
 
         for (i, node) in self.app_data.visited_nodes.iter().flatten() {
             let to = to_screen.transform_pos(self.app_data.grid.points[*i].pos);
-            if let Some(came_from) = node.came_from {
-                let from = to_screen.transform_pos(self.app_data.grid.points[came_from].pos);
-                let mid = (to + from.to_vec2()) / 2.;
-                let line = Shape::line_segment([from, mid], (2., Color32::from_rgb(0, 127, 191)));
-                painter.add(line);
-                let line = Shape::line_segment([mid, to], (3., Color32::from_rgb(0, 127, 191)));
-                painter.add(line);
+            if self.show_search_graph {
+                if let Some(came_from) = node.came_from {
+                    let from = to_screen.transform_pos(self.app_data.grid.points[came_from].pos);
+                    let mid = (to + from.to_vec2()) / 2.;
+                    let line =
+                        Shape::line_segment([from, mid], (2., Color32::from_rgb(0, 127, 191)));
+                    painter.add(line);
+                    let line = Shape::line_segment([mid, to], (3., Color32::from_rgb(0, 127, 191)));
+                    painter.add(line);
+                }
             }
 
             if self.show_grid_cost {
