@@ -266,7 +266,11 @@ impl App {
                 }
             }
 
-            let visited = grid_point.visited.get();
+            let visited = self
+                .app_data
+                .visited_nodes
+                .as_ref()
+                .is_some_and(|nodes| nodes.contains_key(&i));
 
             let color = if hover {
                 Color32::BLUE
