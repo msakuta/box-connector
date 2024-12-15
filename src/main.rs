@@ -96,11 +96,11 @@ impl App {
     fn new(app_data: AppData) -> Self {
         Self {
             app_data,
-            show_grid: true,
-            show_grid_label: true,
+            show_grid: false,
+            show_grid_label: false,
             show_grid_cost: false,
             show_search_graph: false,
-            auto_find_path: false,
+            auto_find_path: true,
             error_msg: None,
         }
     }
